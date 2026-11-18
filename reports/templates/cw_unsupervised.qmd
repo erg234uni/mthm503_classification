@@ -1,0 +1,292 @@
+---
+title: "Are there distinct types of neighbourhood in Hull and East Yorkshire"
+subtitle: "An application of unsupervised learning"
+author: "Anonymous"
+format:
+  html:
+    embed-resources: true
+standalone: true
+---
+
+```{python}
+#| echo: false
+from pathlib import Path
+import pandas as pd
+
+
+def check_exists(path):
+    path = Path(path)
+
+    if not path.exists():
+        print(f"ERROR: Could not find resource: {path}")
+        print("Please check that:")
+        print("  - The file exists")
+        print("  - The path is correct")
+        print("  - Any previous pipeline stages have completed successfully")
+        print()
+        print(
+            "If you have left it too late before a deadline to ask for "
+            "help resolving this issue, please include the missing "
+            "artefact separately in your coursework submission."
+        )
+        return False
+
+    return True
+```
+
+## Overview
+
+This report uses unsupervised learning techniques to investigate whether Lower Layer Super Output Areas (LSOAs) in Hull and the East Riding of Yorkshire can be grouped according to selected demographic, health and socio-economic characteristics derived from the 2021 Census.
+
+The aim is to identify whether distinct types of neighbourhood emerge naturally from the data without using any predefined labels or outcome variables.
+
+In this section, briefly describe:
+
+- what is being clustered (LSOAs)
+- the characteristics used to describe them
+- why clustering is an appropriate tool for identifying groups of similar neighbourhoods
+
+You may wish to write a short paragraph similar to:
+
+> This report uses unsupervised learning techniques to investigate whether neighbourhoods in Hull and the East Riding of Yorkshire can be grouped according to patterns of health, disability, economic activity and household characteristics. The objective is to explore whether distinct types of communities emerge naturally from the data.
+
+Do not describe code or implementation details here.
+
+## The data
+
+The data are derived from the 2021 UK Census and were extracted from a number of published census tables.
+
+The analysis combines information from five Census 2021 Topic Summary datasets published by the Office for National Statistics (ONS): General Health (TS037), Disability (TS038), Car or Van Availability (TS045), National Statistics Socio-economic Classification (TS062) and Economic Activity Status (TS066). These tables were linked using the LSOA geography code to create a single analysis dataset.
+
+- TS037 [General health of usual residents](https://www.ons.gov.uk/datasets/TS037)
+- TS038 [Disability status](https://www.ons.gov.uk/datasets/TS038)
+- TS045 [Household car or van availability](https://www.ons.gov.uk/datasets/TS045)
+- TS062 [National Statistics Socio-economic Classification (NS-SEC)](https://www.ons.gov.uk/datasets/TS062)
+- TS066 [Economic activity status (usual residents aged 16+)](https://www.ons.gov.uk/datasets/TS066)
+
+
+
+
+
+The analysis focuses on LSOAs located within:
+
+- Kingston upon Hull
+- East Riding of Yorkshire
+
+Each row in the analysis dataset corresponds to a single LSOA.
+
+### Combining Census tables
+
+The dataset was created by joining information from several Census 2021 tables using the LSOA geography code.
+
+The source tables include information on:
+
+- self-reported health
+- disability status
+- vehicle availability
+- socio-economic classification
+- economic activity
+
+The resulting dataset combines measures describing different aspects of neighbourhood composition within a single table suitable for analysis.
+
+### Variables supplied for analysis
+
+The coursework pipeline initially selects the following variables:
+
+- `n_unhealthy`
+- `n_healthy`
+- `n_disabled`
+- `n_no_cars`
+- `n_unskilled`
+- `n_unestablished`
+- `n_long_term_sick`
+
+These variables represent counts of residents within each LSOA falling into particular Census categories.
+
+### Variable definitions
+
+The supplied variables are derived from Census categories as follows:
+
+- `n_unhealthy` – residents reporting bad or very bad health
+- `n_healthy` – residents reporting good or very good health
+- `n_disabled` – residents reporting a disability
+- `n_no_cars` – households with no access to a car or van
+- `n_unskilled` – residents in lower supervisory, semi-routine or routine occupations
+- `n_unestablished` – residents who are students, never worked, or long-term unemployed
+- `n_long_term_sick` – economically inactive residents who report being long-term sick or disabled
+
+### Important
+
+The default analysis uses these count variables because they are selected in:
+
+`scripts/unsupervised/01_load_data_cw.py`
+
+However, the SQL query used to create the dataset also calculates several proportion variables.
+
+For example:
+
+- proportion unhealthy
+- proportion disabled
+- proportion with no vehicle access
+- proportion long-term sick
+
+You are encouraged to consider whether clustering on counts or proportions gives a more meaningful representation of neighbourhood similarity.
+
+Modifying the variable selection is part of the analytical task.
+
+If you choose to experiment with alternative variables, commit your changes regularly to GitHub and explain your decisions in the report.
+
+## Interpretation of the variables
+
+Before clustering, think carefully about what these variables represent.
+
+The supplied variables are counts rather than proportions. As a result:
+
+- larger LSOAs may tend to have larger values for many variables
+- some apparent differences may reflect population size rather than social characteristics
+- highly populated areas may appear similar simply because many counts are large
+
+This means that clusters based on counts may partly reflect neighbourhood size.
+
+Proportion variables may reduce this effect by describing the composition of an area rather than the total number of residents.
+
+You may discuss and explore these issues within your analysis.
+
+## Exploratory data analysis
+
+Before clustering, explore the relationships between the variables.
+
+You should discuss:
+
+- differences in scale between variables
+- whether variables appear strongly correlated
+- whether the data contain outliers
+- why standardisation may be required before clustering
+
+You may include visualisations such as scatterplots, pair plots, histograms or correlation heatmaps.
+
+For example:
+
+![Exploratory analysis](../../artefacts/unsupervised/cw/scatterplot.jpg)
+
+Do not simply include plots without interpretation.
+
+Explain any interesting patterns you observe and why they might affect the clustering.
+
+## Hierarchical clustering
+
+Hierarchical clustering identifies groups of similar LSOAs without requiring the number of clusters to be specified in advance.
+
+You should:
+
+- state the distance metric used
+- state the linkage method used
+- briefly justify your choices
+- explain what the dendrogram represents
+
+### Dendrogram
+
+![Hierarchical clustering](../../artefacts/unsupervised/cw/dendrogram.jpg)
+
+You should justify where you choose to cut the dendrogram and explain why that choice produces a useful clustering solution.
+
+There is no single correct answer.
+
+## Visualising clusters using PCA
+
+Principal Components Analysis (PCA) can be used to visualise high-dimensional data in two dimensions.
+
+You should explain:
+
+- what PCA does in general terms
+- why PCA is useful for visualising clustering results
+- whether the clusters appear well separated
+
+![PCA, first two dimensions with cluster membership](../../artefacts/unsupervised/cw/hcluster_scatter.jpg)
+
+Remember that PCA is a visualisation tool and does not determine the clusters itself.
+
+## K-Means clustering
+
+K-Means clustering requires the number of clusters to be specified in advance.
+
+You should:
+
+- explain how you selected the number of clusters
+- comment on whether alternative values of k were considered
+- interpret the resulting clusters
+
+### Cluster centroids
+
+The centroid plots summarise the average characteristics of each cluster.
+
+![Summary of cluster centres](../../artefacts/unsupervised/cw/kmeans_1.jpg)
+
+Discuss:
+
+- which variables distinguish the clusters
+- whether some clusters appear healthier or less healthy
+- whether some clusters appear more affluent or deprived
+- whether the clusters correspond to plausible neighbourhood types
+
+### PCA visualisation
+
+Use PCA to visualise the K-Means solution.
+
+![First two dimensions of data from PCA with cluster memberships](../../artefacts/unsupervised/cw/kmeans_scatter.jpg)
+
+Comment on whether the clusters appear well separated and compare this with the hierarchical clustering solution.
+
+## Comparison and interpretation
+
+Compare the hierarchical clustering and K-Means results.
+
+You may consider:
+
+- whether both methods produce similar groupings
+- whether certain LSOAs consistently belong together
+- which clustering appears easier to interpret
+- whether differences between methods change your conclusions
+
+Remember that clustering is exploratory. Careful interpretation and justification are more important than finding a single "correct" answer.
+
+## Limitations and extensions
+
+Discuss limitations of your analysis.
+
+Possible limitations include:
+
+- use of a limited number of Census variables
+- sensitivity to scaling choices
+- use of counts rather than proportions
+- population size influencing the results
+- difficulty assigning real-world meaning to some clusters
+
+Possible extensions include:
+
+- using proportion variables instead of counts
+- including additional Census variables
+- applying alternative clustering methods
+- exploring clusters geographically
+- comparing Hull and East Riding separately
+
+You do not need to implement all of these extensions to achieve a high mark. However, you should demonstrate an ability to modify and extend the analysis pipeline where appropriate.
+
+## Conclusion
+
+Summarise your findings in three or four sentences.
+
+You should briefly state:
+
+- what patterns were identified
+- whether meaningful groups of neighbourhoods emerged
+- what remained uncertain
+- what additional work might improve understanding of the data
+
+Do not introduce new results in the conclusion.
+
+## Record of AI Use for MTHM503
+
+| Date | AI Tool | Purpose | Prompt | Link | Section |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+|      |      |      |      |      |      |
